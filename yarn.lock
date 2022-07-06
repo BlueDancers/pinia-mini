@@ -830,7 +830,7 @@
   optionalDependencies:
     "fsevents" "~2.3.2"
 
-"vue-demi@*", "vue-demi@^0.13.2":
+"vue-demi@*":
   "integrity" "sha512-41ukrclEbMddAyP7PvxMSYqnOSzPV6r7GNnyTSKSCNTaz19GehxmTiXyP9kwHSUv2+Dr6hHqiUiF7L1VAw2KdQ=="
   "resolved" "https://registry.npmjs.org/vue-demi/-/vue-demi-0.13.2.tgz"
   "version" "0.13.2"

@@ -5,7 +5,6 @@ import App from "./App.vue";
 const app = createApp(App);
 
 const pinia = createPinia();
-console.log(pinia);
 
 app.use(pinia);
 

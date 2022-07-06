@@ -12,8 +12,7 @@ export default defineConfig({
     },
   },
   define: {
-    __DEV__: "true",
-    __BROWSER__: "true",
-    __TEST__: "false",
+    __DEV__: "true", // 是否开发环境
+    __TEST__: "false", // 是否测试环境
   },
 });

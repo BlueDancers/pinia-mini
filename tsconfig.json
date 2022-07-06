@@ -1,16 +1,15 @@
 {
-  // "extends": "@vue/tsconfig/tsconfig.web.json",
+  "extends": "@vue/tsconfig/tsconfig.web.json",
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "importsNotUsedAsValues": "remove",
+    "preserveValueImports": false
   },
 
-  "importsNotUsedAsValues": "remove",
-  "preserveValueImports": false,
-  "isolatedModules": true,
   "references": [
     {
       "path": "./tsconfig.config.json"
