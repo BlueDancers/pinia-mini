@@ -2,18 +2,20 @@
 
 <script setup lang="ts">
 import { onMounted, watchEffect } from "vue";
-import { useCounterStore } from "./stores/counter";
+import { useCounterStore1, useCounterStore2 } from "./stores/counter";
 
-const useCounter = useCounterStore();
+console.log("页面");
+
+const useCounter1 = useCounterStore1();
+const useCounter2 = useCounterStore2();
 onMounted(() => {
-  
-  setInterval(() => {
-    useCounter.increment();
-  }, 1000);
+  // setInterval(() => {
+  //   useCounter.increment();
+  // }, 1000);
 });
-watchEffect(() => {
-  console.log(useCounter.counter);
-});
+// watchEffect(() => {
+//   console.log(useCounter.counter);
+// });
 </script>
 
 <style>

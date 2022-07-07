@@ -46,7 +46,8 @@ const getStoreType = (id: string) => '🍍 ' + id
 
 /**
  * Add the pinia plugin without any store. Allows displaying a Pinia plugin tab
- * as soon as it is added to the application.
+ * 添加 pinia 插件，无需任何store 允许显示 Pinia 插件选项卡
+ * 一旦它被添加到应用程序中
  *
  * @param app - Vue application
  * @param pinia - pinia instance
