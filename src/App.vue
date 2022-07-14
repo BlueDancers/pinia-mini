@@ -1,21 +1,51 @@
-<template></template>
+<template>
+  <div>
+    {{ user }}
+  </div>
+</template>
 
 <script setup lang="ts">
-import { onMounted, watchEffect } from "vue";
+import {
+  effectScope,
+  onMounted,
+  ref,
+  reactive,
+  watch,
+  watchEffect,
+  toRaw,
+  markRaw,
+} from "vue";
 import { useCounterStore1, useCounterStore2 } from "./stores/counter";
-
-console.log("页面");
 
 const useCounter1 = useCounterStore1();
 const useCounter2 = useCounterStore2();
+console.log(useCounter1);
+
 onMounted(() => {
-  // setInterval(() => {
-  //   useCounter.increment();
-  // }, 1000);
+  setInterval(() => {
+    useCounter1.increment();
+  }, 1000);
 });
-// watchEffect(() => {
-//   console.log(useCounter.counter);
-// });
+watchEffect(() => {
+  console.log(useCounter1.counter);
+});
+
+// const foo = {};
+// const reactiveFoo = reactive(foo);
+// console.log("toRaw", toRaw(reactiveFoo) === foo); // true 可以得知toRaw可以获取一个响应式对象的原始属性
+
+// const foo1 = {};
+// const refFoo1 = ref(foo1);
+// console.log("toRaw", toRaw(refFoo1.value) === foo1); // true
+
+const obj = { name: "alice", age: 18 };
+markRaw(obj); // 经过markRaw包装后，obj将不在允许被观察
+
+const user = reactive(obj);
+console.log(user, "markRaw");
+setInterval(() => {
+  user.age = 20;
+}, 1000);
 </script>
 
 <style>

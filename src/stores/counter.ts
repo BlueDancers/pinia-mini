@@ -1,8 +1,21 @@
 import { ref } from "vue";
 import { defineStore } from "../../pinia/src";
 
-export const useCounterStore1 = defineStore({
-  id: "counter1",
+export const useCounterStore1 = defineStore("counter1", {
+  state() {
+    return {
+      counter: 0,
+    };
+  },
+  actions: {
+    increment() {
+      this.counter++;
+    },
+  },
+});
+
+export const useCounterStore2 = defineStore({
+  id: "counter2",
   state: () => ({
     counter: 0,
   }),
@@ -16,27 +29,20 @@ export const useCounterStore1 = defineStore({
   },
 });
 
-export const useCounterStore2 = defineStore("counter2", {
-  state() {
-    return {
-      counter: 0,
-    };
-  },
-  actions: {
-    increment() {
-      this.counter++;
-    },
-  },
-});
-
-export const useCounterStore3 = defineStore("counter3", () => {
-  const count = ref(0);
-  function increment() {
-    count.value++;
-  }
-  return { count, increment };
-});
-
-export const aaa = () => {
-  console.log("ahahaha");
-};
+// export const useCounterStore3 = defineStore(
+//   "counter3",
+//   () => {
+//     const counter = ref(0);
+//     function increment() {
+//       counter.value++;
+//     }
+//     return { counter, increment };
+//   },
+//   {
+//     // actions: {
+//     //   increment() {
+//     //     this.increment();
+//     //   },
+//     // },
+//   }
+// );

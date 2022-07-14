@@ -5,7 +5,7 @@ import {
   inject,
   InjectionKey,
   Ref,
-} from 'vue-demi'
+} from "vue-demi";
 import {
   StateTree,
   PiniaCustomProperties,
@@ -16,13 +16,13 @@ import {
   PiniaCustomStateProperties,
   DefineStoreOptionsInPlugin,
   StoreGeneric,
-} from './types'
+} from "./types";
 
 /**
  * setActivePinia must be called to handle SSR at the top of functions like
  * `fetch`, `setup`, `serverPrefetch` and others
  */
-export let activePinia: Pinia | undefined
+export let activePinia: Pinia | undefined;
 
 /**
  * Sets or unsets the active pinia. Used in SSR and internally when calling
@@ -30,72 +30,73 @@ export let activePinia: Pinia | undefined
  *
  * @param pinia - Pinia instance
  */
-export const setActivePinia = (pinia: Pinia | undefined) =>
-  (activePinia = pinia)
+export const setActivePinia = (pinia: Pinia | undefined) => {
+  activePinia = pinia;
+};
 
 /**
  * Get the currently active pinia if there is any.
  */
 export const getActivePinia = () =>
-  (getCurrentInstance() && inject(piniaSymbol)) || activePinia
+  (getCurrentInstance() && inject(piniaSymbol)) || activePinia;
 
 /**
  * Every application must own its own pinia to be able to create stores
  */
 export interface Pinia {
-  install: (app: App) => void
+  install: (app: App) => void;
 
   /**
    * root state
    */
-  state: Ref<Record<string, StateTree>>
+  state: Ref<Record<string, StateTree>>;
 
   /**
    * Adds a store plugin to extend every store
    *
    * @param plugin - store plugin to add
    */
-  use(plugin: PiniaPlugin): Pinia
+  use(plugin: PiniaPlugin): Pinia;
 
   /**
    * Installed store plugins
    *
    * @internal
    */
-  _p: PiniaPlugin[]
+  _p: PiniaPlugin[];
 
   /**
    * App linked to this Pinia instance
    *
    * @internal
    */
-  _a: App
+  _a: App;
 
   /**
    * Effect scope the pinia is attached to
    *
    * @internal
    */
-  _e: EffectScope
+  _e: EffectScope;
 
   /**
    * Registry of stores used by this pinia.
    *
    * @internal
    */
-  _s: Map<string, StoreGeneric>
+  _s: Map<string, StoreGeneric>;
 
   /**
    * Added by `createTestingPinia()` to bypass `useStore(pinia)`.
    *
    * @internal
    */
-  _testing?: boolean
+  _testing?: boolean;
 }
 
 export const piniaSymbol = (
-  __DEV__ ? Symbol('pinia') : /* istanbul ignore next */ Symbol()
-) as InjectionKey<Pinia>
+  __DEV__ ? Symbol("pinia") : /* istanbul ignore next */ Symbol()
+) as InjectionKey<Pinia>;
 
 /**
  * Context argument passed to Pinia plugins.
@@ -109,22 +110,22 @@ export interface PiniaPluginContext<
   /**
    * pinia instance.
    */
-  pinia: Pinia
+  pinia: Pinia;
 
   /**
    * Current app created with `Vue.createApp()`.
    */
-  app: App
+  app: App;
 
   /**
    * Current store being extended.
    */
-  store: Store<Id, S, G, A>
+  store: Store<Id, S, G, A>;
 
   /**
    * Initial options defining the store when calling `defineStore()`.
    */
-  options: DefineStoreOptionsInPlugin<Id, S, G, A>
+  options: DefineStoreOptionsInPlugin<Id, S, G, A>;
 }
 
 /**
@@ -139,11 +140,11 @@ export interface PiniaPlugin {
    */
   (context: PiniaPluginContext): Partial<
     PiniaCustomProperties & PiniaCustomStateProperties
-  > | void
+  > | void;
 }
 
 /**
  * Plugin to extend every store.
  * @deprecated use PiniaPlugin instead
  */
-export type PiniaStorePlugin = PiniaPlugin
+export type PiniaStorePlugin = PiniaPlugin;

@@ -8,13 +8,12 @@ import { StateTree, StoreGeneric } from "./types";
  * 创建Pinia实例并返回
  */
 export function createPinia(): Pinia {
-  console.log("hello pinia");
+  console.log("createPinia");
 
   // vue3.2新增属性 EffectScope，他是副作用生效的作用域，在作用域内的副作用可以统一生效或者失效，而不跟着页面走。
   // https://juejin.cn/post/7019241635942760455
   // == 首先使用effectScope创建一个响应式作用域，然后在作用域内创建一个响应式的ref，最后成为pinia上的一个属性
   const scope = effectScope(true);
-  console.log(scope);
 
   // NOTE: here we could check the window object for a state and directly set it
   // if there is anything like it with Vue 3 SSR
@@ -32,7 +31,7 @@ export function createPinia(): Pinia {
   // 在调用 app.use(pinia) 之前添加的插件
   let toBeInstalled: PiniaPlugin[] = []; // 待安装插件
 
-  // == 使用markRaw标记pinia使其永远不会被转为响应式。
+  // == 使用markRaw标记pinia使其不会被转化为响应式
   // 包装好pinia，下一步注册
   const pinia: Pinia = markRaw({
     // 当我们使用use进行pinia的注册时，就会触发install方法，方法中首先执行setActivePinia来保存pinia到全局变量

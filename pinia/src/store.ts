@@ -119,48 +119,58 @@ function createOptionsStore<
   G extends _GettersTree<S>,
   A extends _ActionsTree
 >(
-  id: Id,
-  options: DefineStoreOptions<Id, S, G, A>,
-  pinia: Pinia,
+  id: Id, // storeid
+  options: DefineStoreOptions<Id, S, G, A>, // state action getters
+  pinia: Pinia, // 当前store实例
   hot?: boolean
 ): Store<Id, S, G, A> {
   const { state, actions, getters } = options;
+  console.log("进入createOptionsStore", state());
 
+  // 获取state中是否已经存在该store实例
   const initialState: StateTree | undefined = pinia.state.value[id];
-
+  console.log("initialState", initialState);
   let store: Store<Id, S, G, A>;
-
+  //
   function setup() {
+    console.log("开始createOptionsStore的setup函数", state());
+
     if (!initialState && (!__DEV__ || !hot)) {
       /* istanbul ignore if */
       if (isVue2) {
         set(pinia.state.value, id, state ? state() : {});
       } else {
+        // 将数据存储到pinia中，因为state时通过ref进行创建所以他时具备响应时的对象
         pinia.state.value[id] = state ? state() : {};
       }
     }
 
-    // avoid creating a state in pinia.state.value
+    // 避免在 pinia.state.value 中创建状态
+    console.log(11, pinia.state.value[id]);
+    console.log(22, toRefs(pinia.state.value[id]));
+
     const localState =
       __DEV__ && hot
-        ? // use ref() to unwrap refs inside state TODO: check if this is still necessary
+        ? // 使用 ref() 来解开状态 TODO 中的 refs：检查这是否仍然是必要的
           toRefs(ref(state ? state() : {}).value)
         : toRefs(pinia.state.value[id]);
-
-    return assign(
-      localState,
-      actions,
+    // 经过toRefs的处理后，localState.xx.value 就等同于给state中的xx赋值
+    let aa = assign(
+      localState, // state => Refs(state)
+      actions, //
       Object.keys(getters || {}).reduce((computedGetters, name) => {
         if (__DEV__ && name in localState) {
+          // 如果getters名称与state中的名称相同，则抛出错误
           console.warn(
             `[🍍]: A getter cannot have the same name as another state property. Rename one of them. Found with "${name}" in store "${id}".`
           );
         }
-
+        // markRow 防止对象被重复代理
         computedGetters[name] = markRaw(
+          // 使用计算属性处理getters的距离逻辑，并且通过call处理this指向问题
           computed(() => {
             setActivePinia(pinia);
-            // it was created just before
+            // 它是在之前创建的
             const store = pinia._s.get(id)!;
 
             // allow cross using stores
@@ -170,16 +180,21 @@ function createOptionsStore<
             // @ts-expect-error
             // return getters![name].call(context, context)
             // TODO: avoid reading the getter while assigning with a global variable
+            // 将store的this指向getters中实现getters中this的正常使用
             return getters![name].call(store, store);
           })
         );
+
         return computedGetters;
       }, {} as Record<string, ComputedRef>)
     );
+    console.log("aa", aa);
+    return aa;
   }
-
+  // 使用createSetupStore创建store
   store = createSetupStore(id, setup, options, pinia, hot, true);
 
+  // 重写$store方法 options才能使用该API
   store.$reset = function $reset() {
     const newState = state ? state() : {};
     // we use a patch to group all changes into one single subscription
@@ -209,18 +224,23 @@ function createSetupStore<
 ): Store<Id, S, G, A> {
   let scope!: EffectScope;
 
+  //将defineStore声明的对象合并到变量中，并且兼容action不存在的场景
   const optionsForPlugin: DefineStoreOptionsInPlugin<Id, S, G, A> = assign(
     { actions: {} as A },
     options
   );
 
+  console.log(optionsForPlugin);
+
   /* istanbul ignore if */
   // @ts-expect-error: active is an internal property
+  // 如果pinia._e.active不存在，则说明effectscope不存在，提示pinia已经被销毁
   if (__DEV__ && !pinia._e.active) {
     throw new Error("Pinia destroyed");
   }
 
   // watcher options for $subscribe
+  // $subscribe的观察者选项
   const $subscribeOptions: WatchOptions = {
     deep: true,
     // flush: 'post',
@@ -245,17 +265,19 @@ function createSetupStore<
       }
     };
   }
-
   // internal state
-  let isListening: boolean; // set to true at the end
-  let isSyncListening: boolean; // set to true at the end
-  let subscriptions: SubscriptionCallback<S>[] = markRaw([]);
-  let actionSubscriptions: StoreOnActionListener<Id, S, G, A>[] = markRaw([]);
+  let isListening: boolean; // set to true at the end 监听函数执行时机标识
+  let isSyncListening: boolean; // set to true at the end 监听函数执行时机标识
+  let subscriptions: SubscriptionCallback<S>[] = markRaw([]); // state 更新响应队列，缓存$subscribe挂载的任务
+  let actionSubscriptions: StoreOnActionListener<Id, S, G, A>[] = markRaw([]); // actions 响应事件队列, 缓存$onAction挂载的任务
   let debuggerEvents: DebuggerEvent[] | DebuggerEvent;
-  const initialState = pinia.state.value[$id] as UnwrapRef<S> | undefined;
+  const initialState = pinia.state.value[$id] as UnwrapRef<S> | undefined; // 获取当前pinia的state
+  console.log("pinia.state.value[$id] ", pinia.state.value[$id]);
 
   // avoid setting the state for option stores if it is set
   // by the setup
+  // 如果已设置，则避免设置选项存储的状态，通过对象方式声明的state这段逻辑将不会走
+  // 如果option的声明方式，则设置state默认值
   if (!isOptionsStore && !initialState && (!__DEV__ || !hot)) {
     /* istanbul ignore if */
     if (isVue2) {
@@ -267,7 +289,8 @@ function createSetupStore<
 
   const hotState = ref({} as S);
 
-  // avoid triggering too many listeners
+  // $patch 改变状态
+  // 避免触发过多监听
   // https://github.com/vuejs/pinia/issues/1129
   let activeListener: Symbol | undefined;
   function $patch(stateMutation: (state: UnwrapRef<S>) => void): void;
@@ -316,6 +339,7 @@ function createSetupStore<
   }
 
   /* istanbul ignore next */
+  // 重置状态 如果是通过function进行创建，则无法使用$reset，而通过Object进行创建，则会在createOptionsStore被重写。
   const $reset = __DEV__
     ? () => {
         throw new Error(
@@ -324,15 +348,16 @@ function createSetupStore<
       }
     : noop;
 
+  // 注销该store
   function $dispose() {
-    scope.stop();
+    scope.stop(); // effect作用于停止
     subscriptions = [];
     actionSubscriptions = [];
-    pinia._s.delete($id);
+    pinia._s.delete($id); // 删除effectMap结构
   }
 
   /**
-   * Wraps an action to handle subscriptions.
+   * 包装一个action来处理订阅。
    *
    * @param name - name of the action
    * @param action - action to wrap
@@ -387,7 +412,7 @@ function createSetupStore<
       return ret;
     };
   }
-
+  // _hmrPayload
   const _hmrPayload = /*#__PURE__*/ markRaw({
     actions: {} as Record<string, any>,
     getters: {} as Record<string, Ref>,
@@ -399,10 +424,11 @@ function createSetupStore<
     _p: pinia,
     // _s: scope,
     $id,
-    $onAction: addSubscription.bind(null, actionSubscriptions),
-    $patch,
-    $reset,
+    $onAction: addSubscription.bind(null, actionSubscriptions), // action事件注册函数
+    $patch, // store更新函数
+    $reset, // 充值reset
     $subscribe(callback, options = {}) {
+      // 注册修改响应监听
       const removeSubscription = addSubscription(
         subscriptions,
         callback,
@@ -430,7 +456,7 @@ function createSetupStore<
 
       return removeSubscription;
     },
-    $dispose,
+    $dispose, // 注销store
   } as _StoreWithState<Id, S, G, A>;
 
   /* istanbul ignore if */
@@ -438,7 +464,7 @@ function createSetupStore<
     // start as non ready
     partialStore._r = false;
   }
-
+  // 将以上构建的兑换转行为响应式数据
   const store: Store<Id, S, G, A> = reactive(
     assign(
       __DEV__ && IS_CLIENT
@@ -454,20 +480,25 @@ function createSetupStore<
     )
   ) as unknown as Store<Id, S, G, A>;
 
-  // store the partial store now so the setup of stores can instantiate each other before they are finished without
-  // creating infinite loops.
+  // 缓存当前store，
   pinia._s.set($id, store);
 
-  // TODO: idea create skipSerialize that marks properties as non serializable and they are skipped
+  // TODO：想法创建skipSerialize，将属性标记为不可序列化并被跳过
+  // setup执行结果返回所有变量 计算属性 以及方法，统一将他放入一个effect域中
   const setupStore = pinia._e.run(() => {
     scope = effectScope();
     return scope.run(() => setup());
   })!;
 
+  console.log("setupStore", setupStore.counter.value);
+  //  setupStore中包含state,getters（被计算属性处理了），还有actions
   // overwrite existing actions to support $onAction
+  //  如果prop是ref（但不是computed）或reactive
   for (const key in setupStore) {
     const prop = setupStore[key];
+    console.log(prop, "prop");
 
+    // 如果当前props是ref并且不是计算属性与reative
     if ((isRef(prop) && !isComputed(prop)) || isReactive(prop)) {
       // mark it as a piece of state to be serialized
       if (__DEV__ && hot) {
@@ -475,7 +506,9 @@ function createSetupStore<
         // createOptionStore directly sets the state in pinia.state.value so we
         // can just skip that
       } else if (!isOptionsStore) {
+        // 不是options声明的才会进入此判断
         // in setup stores we must hydrate the state and sync pinia state tree with the refs the user just created
+        // 在 setuo store中，我们必须将state和pinia state树与用户刚刚创建的refs同步
         if (initialState && shouldHydrate(prop)) {
           if (isRef(prop)) {
             prop.value = initialState[key];
@@ -486,6 +519,8 @@ function createSetupStore<
         }
         // transfer the ref to the pinia state to keep everything in sync
         /* istanbul ignore if */
+        // 将属性同步至pinia.state
+        // 如果是options创建的则不需要在这里进行同步，因为在setup函数已经完成了同步
         if (isVue2) {
           set(pinia.state.value[$id], key, prop);
         } else {
@@ -548,15 +583,19 @@ function createSetupStore<
       );
     });
   } else {
+    // 将若干方法方法与store中的变量与函数进行合并
     assign(store, setupStore);
     // allows retrieving reactive objects with `storeToRefs()`. Must be called after assigning to the reactive object.
     // Make `storeToRefs()` work with `reactive()` #799
+
+    //允许使用“storeToRefs()”检索reactive objects。必须在分配给reactive object后调用。
+    //使'storeToRefs()`与'reactive()`一起工作 #799
+
     assign(toRaw(store), setupStore);
+    console.log(toRaw(store));
   }
 
-  // use this instead of a computed with setter to be able to create it anywhere
-  // without linking the computed lifespan to wherever the store is first
-  // created.
+  // 绑定$store属性
   Object.defineProperty(store, "$state", {
     get: () => (__DEV__ && hot ? hotState.value : pinia.state.value[$id]),
     set: (state) => {
@@ -861,7 +900,6 @@ export function defineStore(
         _GettersTree<StateTree>,
         _ActionsTree
       >;
-  console.log("开始实例化", idOrOptions, setup, setupOptions);
 
   const isSetupStore = typeof setup === "function";
   if (typeof idOrOptions === "string") {
@@ -872,16 +910,23 @@ export function defineStore(
     options = idOrOptions;
     id = idOrOptions.id;
   }
+  console.log("开始执行defineStore", id, options.state());
 
   function useStore(pinia?: Pinia | null, hot?: StoreGeneric): StoreGeneric {
+    console.log("开始执行useStore");
+
+    // 获取组件示例
     const currentInstance = getCurrentInstance();
+    // 在测试模式下，忽略提供的参数
+    // 真实环境下，如果未传入pinia，则通过inject(piniaSymbol)获取pinia（我们再install阶段存储的piniaSymbol）
+    console.log("inject(piniaSymbol)", inject(piniaSymbol));
+
     pinia =
-      // in test mode, ignore the argument provided as we can always retrieve a
-      // pinia instance with getActivePinia()
       (__TEST__ && activePinia && activePinia._testing ? null : pinia) ||
       (currentInstance && inject(piniaSymbol));
+    // 设置激活的pinia
     if (pinia) setActivePinia(pinia);
-
+    // 如果再dev环境并且当前pinia获取不到，说明未全局注册，抛出错误
     if (__DEV__ && !activePinia) {
       throw new Error(
         `[🍍]: getActivePinia was called with no active Pinia. Did you forget to install pinia?\n` +
@@ -890,11 +935,15 @@ export function defineStore(
           `This will fail in production.`
       );
     }
-
+    // 获取最新pinia，并断言pinia一定存在
     pinia = activePinia!;
-
+    // _s中存储变量与其响应式函数的effects
+    // 再_s中寻找store是否已经被注册
     if (!pinia._s.has(id)) {
+      console.log("isSetupStore", isSetupStore);
+
       // creating the store registers it in `pinia._s`
+      // 不同store的创建形式会走不同的store初始化流程
       if (isSetupStore) {
         createSetupStore(id, setup, options, pinia);
       } else {
@@ -907,7 +956,7 @@ export function defineStore(
         useStore._pinia = pinia;
       }
     }
-
+    // 从_s中获取当前store的effect数据
     const store: StoreGeneric = pinia._s.get(id)!;
 
     if (__DEV__ && hot) {
