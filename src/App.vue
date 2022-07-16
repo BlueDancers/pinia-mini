@@ -1,6 +1,6 @@
 <template>
   <div>
-    {{ user }}
+    {{ useCounter3.counter }}
   </div>
 </template>
 
@@ -14,20 +14,28 @@ import {
   watchEffect,
   toRaw,
   markRaw,
+  toRefs,
 } from "vue";
-import { useCounterStore1, useCounterStore2 } from "./stores/counter";
+import {
+  useCounterStore1,
+  useCounterStore2,
+  useCounterStore3,
+} from "./stores/counter";
 
 const useCounter1 = useCounterStore1();
 const useCounter2 = useCounterStore2();
+const useCounter3 = useCounterStore3();
 console.log(useCounter1);
 
 onMounted(() => {
   setInterval(() => {
     useCounter1.increment();
   }, 1000);
+  useCounter3.increment();
+  useCounter3.increment();
 });
 watchEffect(() => {
-  console.log(useCounter1.counter);
+  console.log("useCounter1", useCounter1.counter);
 });
 
 // const foo = {};
@@ -46,6 +54,19 @@ console.log(user, "markRaw");
 setInterval(() => {
   user.age = 20;
 }, 1000);
+
+const bb = reactive({
+  name: "张三",
+  age: 1,
+});
+
+let name = ref("张三");
+let age = ref("24");
+
+const info = reactive({ name, age });
+
+console.log(info.name); // 张三
+console.log(info.age); // 24
 </script>
 
 <style>
