@@ -1,4 +1,4 @@
-import { defineStore } from "../my-pinia/index";
+import { defineStore } from "../super-mini-pinia/index";
 
 export const useCounterStore = defineStore({
   id: "counter",
@@ -11,6 +11,6 @@ export const useCounterStore = defineStore({
     },
   },
   getters: {
-    dnum: (state) => state.num * 2,
+    dnum: (state: any) => state.num * 2,
   },
 });

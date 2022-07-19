@@ -1,6 +1,3 @@
-// import { DefineStoreOptionsBase, PiniaCustomProperties, PiniaCustomStateProperties, Store, _StoreWithGetters, _StoreWithState } from "pinia/src";
-// import { UnwrapRef } from "vue";
-
 import {
   computed,
   ComputedRef,
@@ -15,83 +12,42 @@ import {
 import { getCurrentInstance } from "vue";
 import { piniaSymbol } from "./helper";
 
-// type Record<K extends keyof any, T> = {
-//   [P in K]: T;
-// };
-
-// type StateTree = Record<string | number | symbol, any>;
-
-// type _GettersTree<S extends StateTree> = Record<
-//   string,
-//   | ((state: UnwrapRef<S> & UnwrapRef<PiniaCustomStateProperties<S>>) => any)
-//   | (() => any)
-// >;
-
-// export declare interface DefineStoreOptions<
-//   Id extends string,
-//   S extends StateTree,
-//   G,
-//   A
-// > extends DefineStoreOptionsBase<S, Store<Id, S, G, A>> {
-//   id: Id;
-//   state?: () => S;
-//   getters?: G &
-//     ThisType<UnwrapRef<S> & _StoreWithGetters<G> & PiniaCustomProperties> &
-//     _GettersTree<S>;
-//   actions?: A &
-//     ThisType<
-//       A &
-//         UnwrapRef<S> &
-//         _StoreWithState<Id, S, G, A> &
-//         _StoreWithGetters<G> &
-//         PiniaCustomProperties
-//     >;
-// }
-
-// export function defineStore<
-//   Id extends string,
-//   S extends StateTree = {},
-//   G extends _GettersTree<S> = {},
-//   A = {}
-// >(option: DefineStoreOptions<Id, S, G, A>) {
-//   let { id, state, actions } = option;
-//   console.log(id, state, actions);
-
-//   function useStore() {}
-
-//   return useStore;
-// }
-
-export function defineStore<S>(options: {
+/**
+ * 创建store
+ * @param options
+ * @returns
+ */
+export function defineStore(options: {
   id: string;
-  state: () => S;
-  getters: {
-    [params: string]: (arg0: S) => ReturnType<any>;
-  };
+  state: any;
+  getters: any;
   actions: any;
 }) {
   let { id, state, actions } = options;
-  console.log(id, state, actions);
-
+  
+  // 实际运行函数
   function useStore() {
     const currentInstance = getCurrentInstance();
     let pinia: any;
     if (currentInstance) {
       pinia = inject(piniaSymbol);
     }
-
+    
+    // 单例模式
     if (!pinia._s.has(id)) {
       createOptionsStore(id, options, pinia);
     }
     const store = pinia._s.get(id);
+    console.log(pinia);
+    
     return store;
   }
-
+  useStore.$id = id;
   return useStore;
 }
 
 /**
- *
+ * 处理state getters
  * @param id
  * @param options
  * @param pinia
@@ -121,7 +77,7 @@ function createOptionsStore(id: any, options: any, pinia: any) {
 }
 
 /**
- *
+ * 处理action以及配套API将其加入store
  * @param $id
  * @param setup
  * @param options
@@ -131,18 +87,18 @@ function createSetupStore($id: string, setup: any, options: any, pinia: any) {
   let partialStore = {
     _p: pinia,
     $id,
-    $reset: () => {
-      console.log("有空再开发");
-    },
+    $reset: () => console.log("reset"),
+    $patch: () => console.log("patch"),
+    $onAction: () => console.log("onAction"),
+    $subscribe: () => console.log("subscribe"),
+    $dispose: () => console.log("dispose"),
   };
-  const store: any = reactive(Object.assign({}, partialStore));
-  pinia._s.set($id, store);
 
   let scope!: EffectScope;
   const setupStore = pinia._e.run(() => {
     scope = effectScope();
     return scope.run(() => setup());
-  })!;
+  });
 
   for (const key in setupStore) {
     const prop = setupStore[key];
@@ -150,7 +106,10 @@ function createSetupStore($id: string, setup: any, options: any, pinia: any) {
       setupStore[key] = prop;
     }
   }
-  console.log(setupStore);
-  Object.assign(toRaw(store), setupStore);
+
+  const store: any = reactive(
+    Object.assign(toRaw({}), partialStore, setupStore)
+  );
+  pinia._s.set($id, store);
   return store;
 }
