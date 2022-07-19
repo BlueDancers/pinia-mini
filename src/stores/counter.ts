@@ -44,19 +44,3 @@ export const useCounterStore3 = defineStore("counter3", () => {
   }
   return { counter, doubleCount, increment };
 });
-
-console.log(123);
-
-function abcd(aaa) {
-  console.log("abcd", aaa);
-}
-
-let aa = abcd("aaa");
-
-const abc = test(() => {
-  console.log(111);
-});
-
-function test(aaa: any) {
-  aaa();
-}

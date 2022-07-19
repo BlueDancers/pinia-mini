@@ -420,39 +420,39 @@ function createSetupStore<
     _p: pinia,
     // _s: scope,
     $id,
-    // $onAction: addSubscription.bind(null, actionSubscriptions), // action事件注册函数
-    // $patch, // store更新函数
-    // $reset, // 充值reset
-    // $subscribe(callback, options = {}) {
-    //   // 注册修改响应监听
-    //   const removeSubscription = addSubscription(
-    //     subscriptions,
-    //     callback,
-    //     options.detached,
-    //     () => stopWatcher()
-    //   );
-    //   const stopWatcher = scope.run(() =>
-    //     watch(
-    //       () => pinia.state.value[$id] as UnwrapRef<S>,
-    //       (state) => {
-    //         if (options.flush === "sync" ? isSyncListening : isListening) {
-    //           callback(
-    //             {
-    //               storeId: $id,
-    //               type: MutationType.direct,
-    //               events: debuggerEvents as DebuggerEvent,
-    //             },
-    //             state
-    //           );
-    //         }
-    //       },
-    //       assign({}, $subscribeOptions, options)
-    //     )
-    //   )!;
+    $onAction: addSubscription.bind(null, actionSubscriptions), // action事件注册函数
+    $patch, // store更新函数
+    $reset, // 充值reset
+    $subscribe(callback, options = {}) {
+      // 注册修改响应监听
+      const removeSubscription = addSubscription(
+        subscriptions,
+        callback,
+        options.detached,
+        () => stopWatcher()
+      );
+      const stopWatcher = scope.run(() =>
+        watch(
+          () => pinia.state.value[$id] as UnwrapRef<S>,
+          (state) => {
+            if (options.flush === "sync" ? isSyncListening : isListening) {
+              callback(
+                {
+                  storeId: $id,
+                  type: MutationType.direct,
+                  events: debuggerEvents as DebuggerEvent,
+                },
+                state
+              );
+            }
+          },
+          assign({}, $subscribeOptions, options)
+        )
+      )!;
 
-    //   return removeSubscription;
-    // },
-    // $dispose, // 注销store
+      return removeSubscription;
+    },
+    $dispose, // 注销store
   } as _StoreWithState<Id, S, G, A>;
 
   /* istanbul ignore if */
