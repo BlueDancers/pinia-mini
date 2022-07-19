@@ -125,7 +125,6 @@ function createOptionsStore<
   hot?: boolean
 ): Store<Id, S, G, A> {
   const { state, actions, getters } = options;
-  console.log("options", options);
 
   // 获取state中是否已经存在该store实例
   const initialState: StateTree | undefined = pinia.state.value[id];
@@ -149,7 +148,6 @@ function createOptionsStore<
         ? // 使用 ref() 来解开状态 TODO 中的 refs：检查这是否仍然是必要的
           toRefs(ref(state ? state() : {}).value)
         : toRefs(pinia.state.value[id]);
-    console.log("localState", localState);
 
     // 经过toRefs的处理后 option中的state表现形式与setup表现一致
     let aa = assign(
@@ -185,7 +183,6 @@ function createOptionsStore<
         return computedGetters;
       }, {} as Record<string, ComputedRef>)
     );
-    console.log("aa", aa);
     return aa;
   }
   // 使用createSetupStore创建store
@@ -268,7 +265,6 @@ function createSetupStore<
   let actionSubscriptions: StoreOnActionListener<Id, S, G, A>[] = markRaw([]); // actions 响应事件队列, 缓存$onAction挂载的任务
   let debuggerEvents: DebuggerEvent[] | DebuggerEvent;
   const initialState = pinia.state.value[$id] as UnwrapRef<S> | undefined; // 获取当前pinia的state
-  console.log("pinia.state.value[$id] ", pinia.state.value[$id]);
 
   // avoid setting the state for option stores if it is set
   // by the setup
@@ -460,7 +456,6 @@ function createSetupStore<
     // start as non ready
     partialStore._r = false;
   }
-  console.log("partialStore", partialStore);
   // 将以上构建的兑换转行为响应式数据(还不清楚)
   const store: Store<Id, S, G, A> = reactive(
     assign(
@@ -476,7 +471,6 @@ function createSetupStore<
       // setupStore
     )
   ) as unknown as Store<Id, S, G, A>;
-  console.log("store", store);
 
   // 缓存当前store，
   pinia._s.set($id, store);
@@ -484,8 +478,6 @@ function createSetupStore<
   // TODO：想法创建skipSerialize，将属性标记为不可序列化并被跳过
   // setup执行结果返回所有变量 计算属性 以及方法，统一将他放入一个effect域中
   // 经过option的处理，无论何种形式的defineStore执行setup的结果都已经一致
-  let ccc = setup();
-  console.log(ccc);
 
   const setupStore = pinia._e.run(() => {
     scope = effectScope();
@@ -534,7 +526,6 @@ function createSetupStore<
       // action
     } else if (typeof prop === "function") {
       // @ts-expect-error: we are overriding the function we avoid wrapping if
-      console.log("__DEV__ && hot", __DEV__, hot);
       // 如果当前函数是fun
       // wrapAction 会将当前prop也就是函数增加调用错误与正常的回调函数
       // const actionValue = __DEV__ && hot ? prop : wrapAction(key, prop);
@@ -547,7 +538,6 @@ function createSetupStore<
       } else {
         // @ts-expect-error
         setupStore[key] = actionValue;
-        console.log("添加的方法", setupStore[key]);
       }
 
       /* istanbul ignore else */
@@ -594,10 +584,7 @@ function createSetupStore<
 
     //允许使用“storeToRefs()”检索reactive objects。必须在分配给reactive object后调用。
     //使'storeToRefs()`与'reactive()`一起工作 #799
-    console.log("啊哈哈哈哈", toRaw(store), setupStore);
-
     assign(toRaw(store), setupStore);
-    console.log(toRaw(store));
   }
 
   // 绑定$store属性
@@ -918,15 +905,11 @@ export function defineStore(
   }
 
   function useStore(pinia?: Pinia | null, hot?: StoreGeneric): StoreGeneric {
-    console.log("开始执行useStore");
-
     // 获取组件实例
     const currentInstance = getCurrentInstance();
 
     // 在测试模式下，忽略提供的参数
     // 真实环境下，如果未传入pinia，则通过inject(piniaSymbol)获取pinia（我们再install阶段存储的piniaSymbol）
-    console.log("inject(piniaSymbol)", inject(piniaSymbol));
-
     pinia =
       (__TEST__ && activePinia && activePinia._testing ? null : pinia) ||
       (currentInstance && inject(piniaSymbol));
@@ -946,8 +929,6 @@ export function defineStore(
     // _s中存储变量与其响应式函数的effects
     // 再_s中寻找store是否已经被注册
     if (!pinia._s.has(id)) {
-      console.log("isSetupStore", isSetupStore);
-
       // creating the store registers it in `pinia._s`
       // 不同store的创建形式会走不同的store初始化流程
       if (isSetupStore) {

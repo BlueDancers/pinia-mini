@@ -24,7 +24,7 @@ export function defineStore(options: {
   actions: any;
 }) {
   let { id, state, actions } = options;
-  
+
   // 实际运行函数
   function useStore() {
     const currentInstance = getCurrentInstance();
@@ -32,14 +32,16 @@ export function defineStore(options: {
     if (currentInstance) {
       pinia = inject(piniaSymbol);
     }
-    
+    if (!pinia) {
+      throw new Error("super-mini-pinia在mian中注册了吗?");
+    }
     // 单例模式
     if (!pinia._s.has(id)) {
       createOptionsStore(id, options, pinia);
     }
     const store = pinia._s.get(id);
     console.log(pinia);
-    
+
     return store;
   }
   useStore.$id = id;
@@ -52,7 +54,7 @@ export function defineStore(options: {
  * @param options
  * @param pinia
  */
-function createOptionsStore(id: any, options: any, pinia: any) {
+function createOptionsStore(id: string, options: any, pinia: any) {
   const { state, actions, getters } = options;
   function setup() {
     pinia.state.value[id] = state ? state() : {};

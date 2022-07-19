@@ -1,6 +1,6 @@
 import { computed } from "@vue/reactivity";
 import { ref } from "vue";
-import { defineStore } from "../../pinia/src";
+import { defineStore } from "../pinia/src";
 
 // 为什么defineStore第一次执行，因为defineStore是一个函数，在当前场景下进行传参使用，
 export const useCounterStore1 = defineStore("counter1", {
