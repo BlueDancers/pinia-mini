@@ -28,19 +28,40 @@ const useCounter3 = useCounterStore3();
 console.log(useCounter1);
 
 onMounted(() => {
+  let abc = useCounter1.$subscribe(
+    (option, state) => {
+      // 通过store.num = xxxx修改，type为direct
+      // 通过store.$patch({ num: 'xxx' })修改，type为directpatchObject
+      // 通过store.$patch((state) => num.name='xxx')修改，type为patchFunction
+
+      // storeId为当前store的id
+      // events 当前改动说明
+      let { events, storeId, type } = option;
+      console.log(events, storeId, type, state);
+    },
+    { detached: false }
+  );
+  console.log(abc);
+  abc()
+  
+  // useCounter1.$onAction((option) => {
+  //   let { after, onError, args, name, store } = option;
+  //   console.log(option);
+  //   after((res) => {
+  //     console.log(res);
+  //   });
+  //   onError((error) => {
+  //     console.log(error);
+  //   });
+  // });
   setInterval(() => {
+    // useCounter1.counter++;
     useCounter1.increment();
   }, 1000);
-  useCounter3.increment();
-  useCounter3.increment();
-
-  useCounter1.$onAction((action) => {
-    console.log(action);
-  });
 });
-watchEffect(() => {
-  console.log("useCounter1", useCounter1.counter);
-});
+// watchEffect(() => {
+//   console.log("useCounter1", useCounter1.counter);
+// });
 
 // const foo = {};
 // const reactiveFoo = reactive(foo);
