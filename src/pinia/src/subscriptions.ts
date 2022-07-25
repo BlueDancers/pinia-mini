@@ -9,8 +9,6 @@ export function addSubscription<T extends _Method>(
   detached?: boolean,
   onCleanup: () => void = noop
 ) {
-  console.log(subscriptions, callback, detached, onCleanup);
-
   // 使用$Action的时候就会触发本函数
   subscriptions.push(callback);
 

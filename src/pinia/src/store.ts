@@ -439,6 +439,8 @@ function createSetupStore<
         watch(
           () => pinia.state.value[$id] as UnwrapRef<S>,
           (state) => {
+            // 如果等于sync会在修改后立即执行该watch，此时的isSyncListening为false 不会触发callback
+            // 如果不等于sync，修改后不会立刻触发watch
             if (options.flush === "sync" ? isSyncListening : isListening) {
               callback(
                 {
@@ -450,7 +452,11 @@ function createSetupStore<
               );
             }
           },
-          assign({}, $subscribeOptions, options)
+          assign({}, $subscribeOptions, options) // watch的第三个参数 默认deep为true
+          // 如果希望副作用函数在组件更新前发生，可以将flush设为'post'（默认是'pre'）
+          // 如果flush设置为'sync'，一​​旦值改变，回调将被同步调用。
+          // 对于'pre'和'post'，回调使用队列进行缓冲。回调只会被添加到队列中一次，即使被监视的值改变了多次。中间值将被跳过并且不会传递给回调。
+          // 默认值为'pre'
         )
       )!;
 

@@ -28,23 +28,25 @@ const useCounter3 = useCounterStore3();
 console.log(useCounter1);
 
 onMounted(() => {
-  useCounter1.$patch({ counter: 2 });
-  useCounter1.$patch((state) => {
-    state.counter = 2;
-  });
-  // useCounter1.$subscribe(
-  //   (option, state) => {
-  //     // 通过store.num = xxxx修改，type为direct
-  //     // 通过store.$patch({ num: 'xxx' })修改，type为directpatchObject
-  //     // 通过store.$patch((state) => num.name='xxx')修改，type为patchFunction
+  setTimeout(() => {
+    useCounter1.$patch({ counter: 2 });
+    useCounter1.$patch((state) => {
+      state.counter = 2;
+    });
+  }, 1000);
+  useCounter1.$subscribe(
+    (option, state) => {
+      // 通过store.num = xxxx修改，type为direct
+      // 通过store.$patch({ num: 'xxx' })修改，type为directpatchObject
+      // 通过store.$patch((state) => num.name='xxx')修改，type为patchFunction
 
-  //     // storeId为当前store的id
-  //     // events 当前改动说明
-  //     let { events, storeId, type } = option;
-  //     console.log(events, storeId, type, state);
-  //   },
-  //   { detached: false }
-  // );
+      // storeId为当前store的id
+      // events 当前改动说明
+      let { events, storeId, type } = option;
+      console.log(events, storeId, type, state);
+    },
+    { detached: false }
+  );
 
   // useCounter1.$onAction((option) => {
   //   let { after, onError, args, name, store } = option;
@@ -58,7 +60,7 @@ onMounted(() => {
   // });
   setInterval(() => {
     // useCounter1.counter++;
-    useCounter1.increment();
+    // useCounter1.increment();
   }, 1000);
 });
 // watchEffect(() => {
