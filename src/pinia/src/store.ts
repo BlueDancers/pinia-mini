@@ -148,6 +148,7 @@ function createOptionsStore<
         ? // 使用 ref() 来解开状态 TODO 中的 refs：检查这是否仍然是必要的
           toRefs(ref(state ? state() : {}).value)
         : toRefs(pinia.state.value[id]);
+    console.log(localState, "localState");
 
     // 经过toRefs的处理后 option中的state表现形式与setup表现一致
     let aa = assign(
@@ -183,6 +184,7 @@ function createOptionsStore<
         return computedGetters;
       }, {} as Record<string, ComputedRef>)
     );
+    console.log(aa);
     return aa;
   }
   // 使用createSetupStore创建store
@@ -485,6 +487,7 @@ function createSetupStore<
       // setupStore
     )
   ) as unknown as Store<Id, S, G, A>;
+  console.log("store", store);
 
   // 缓存当前store，
   pinia._s.set($id, store);
@@ -498,6 +501,7 @@ function createSetupStore<
     return scope.run(() => setup());
   })!;
 
+  console.log(setupStore, "setupStore");
   //  setupStore中包含state,getters（被计算属性处理了），还有actions
   // overwrite existing actions to support $onAction
   //  如果prop是ref（但不是computed）或reactive
@@ -599,6 +603,7 @@ function createSetupStore<
     //允许使用“storeToRefs()”检索reactive objects。必须在分配给reactive object后调用。
     //使'storeToRefs()`与'reactive()`一起工作 #799
     assign(toRaw(store), setupStore);
+    console.log("store", store);
   }
 
   // 绑定$store属性
@@ -923,7 +928,7 @@ export function defineStore(
     const currentInstance = getCurrentInstance();
 
     // 在测试模式下，忽略提供的参数
-    // 真实环境下，如果未传入pinia，则通过inject(piniaSymbol)获取pinia（我们再install阶段存储的piniaSymbol）
+    // 真实环境下，如果未传入pinia，则通过inject(piniaSymbol)获取pinia（我们在install阶段存储的piniaSymbol）
     pinia =
       (__TEST__ && activePinia && activePinia._testing ? null : pinia) ||
       (currentInstance && inject(piniaSymbol));
@@ -986,12 +991,11 @@ export function defineStore(
       const cache = "_pStores" in vm ? vm._pStores! : (vm._pStores = {});
       cache[id] = store;
     }
-
+    console.log(pinia);
     // StoreGeneric cannot be casted towards Store
     return store as any;
   }
 
   useStore.$id = id;
-
   return useStore;
 }

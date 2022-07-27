@@ -17,7 +17,7 @@ const localState = toRefs(store.value.state);
 const react = reactive(Object.assign(localState));
 
 function addNummm() {
-  react.num++;
+  react.num = 2;
 }
 </script>
 

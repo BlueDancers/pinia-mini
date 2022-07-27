@@ -59,7 +59,9 @@ onMounted(() => {
   //   });
   // });
   setInterval(() => {
+    useCounter1.counter
     // useCounter1.counter++;
+    //  this.counter++;
     // useCounter1.increment();
   }, 1000);
 });

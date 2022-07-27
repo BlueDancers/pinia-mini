@@ -1,4 +1,4 @@
-import { defineStore } from "../super-mini-pinia/index";
+import { defineStore } from "../source/index";
 
 export const useCounterStore = defineStore({
   id: "counter",
