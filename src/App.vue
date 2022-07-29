@@ -5,17 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-  effectScope,
-  onMounted,
-  ref,
-  reactive,
-  watch,
-  watchEffect,
-  toRaw,
-  markRaw,
-  toRefs,
-} from "vue";
+import { onMounted } from "vue";
 import {
   useCounterStore1,
   useCounterStore2,
@@ -28,25 +18,16 @@ const useCounter3 = useCounterStore3();
 console.log(useCounter1);
 
 onMounted(() => {
-  setTimeout(() => {
-    useCounter1.$patch({ counter: 2 });
+  setInterval(() => {
     useCounter1.$patch((state) => {
-      state.counter = 2;
+      state.counter++;
     });
   }, 1000);
-  useCounter1.$subscribe(
-    (option, state) => {
-      // 通过store.num = xxxx修改，type为direct
-      // 通过store.$patch({ num: 'xxx' })修改，type为directpatchObject
-      // 通过store.$patch((state) => num.name='xxx')修改，type为patchFunction
 
-      // storeId为当前store的id
-      // events 当前改动说明
-      let { events, storeId, type } = option;
-      console.log(events, storeId, type, state);
-    },
-    { detached: false }
-  );
+  setTimeout(() => {
+    console.log('停止所有副作用');
+    useCounter1.$dispose()
+  }, 5000);
 
   // useCounter1.$onAction((option) => {
   //   let { after, onError, args, name, store } = option;
@@ -58,46 +39,21 @@ onMounted(() => {
   //     console.log(error);
   //   });
   // });
-  setInterval(() => {
-    useCounter1.counter
-    // useCounter1.counter++;
-    //  this.counter++;
-    // useCounter1.increment();
-  }, 1000);
+
+  // useCounter1.$subscribe(
+  //   (option, state) => {
+  //     // 通过store.num = xxxx修改，type为direct
+  //     // 通过store.$patch({ num: 'xxx' })修改，type为directpatchObject
+  //     // 通过store.$patch((state) => num.name='xxx')修改，type为patchFunction
+
+  //     // storeId为当前store的id
+  //     // events 当前改动说明
+  //     let { events, storeId, type } = option;
+  //     console.log(events, storeId, type, state);
+  //   },
+  //   { detached: false }
+  // );
 });
-// watchEffect(() => {
-//   console.log("useCounter1", useCounter1.counter);
-// });
-
-// const foo = {};
-// const reactiveFoo = reactive(foo);
-// console.log("toRaw", toRaw(reactiveFoo) === foo); // true 可以得知toRaw可以获取一个响应式对象的原始属性
-
-// const foo1 = {};
-// const refFoo1 = ref(foo1);
-// console.log("toRaw", toRaw(refFoo1.value) === foo1); // true
-
-// const obj = { name: "alice", age: 18 };
-// markRaw(obj); // 经过markRaw包装后，obj将不在允许被观察
-
-// const user = reactive(obj);
-// console.log(user, "markRaw");
-// setInterval(() => {
-//   user.age = 20;
-// }, 1000);
-
-// const bb = reactive({
-//   name: "张三",
-//   age: 1,
-// });
-
-// let name = ref("张三");
-// let age = ref("24");
-
-// const info = reactive({ name, age });
-
-// console.log(info.name); // 张三
-// console.log(info.age); // 24
 </script>
 
 <style>

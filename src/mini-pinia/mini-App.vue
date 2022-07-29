@@ -7,10 +7,20 @@
 </template>
 
 <script setup lang="ts">
-import { watchEffect } from "vue";
+import { onMounted, watchEffect } from "vue";
 import { useCounterStore } from "./store/counter";
 
 const useStore = useCounterStore();
+
+onMounted(() => {
+  setInterval(() => {
+    useStore.$reset();
+  }, 3000);
+
+  // setTimeout(() => {
+  //   useStore.$dispose();
+  // }, 9000);
+});
 
 watchEffect(() => {
   console.log("watchEffect触发", useStore.num);
@@ -18,5 +28,8 @@ watchEffect(() => {
 
 function addNum() {
   useStore.addNum();
+  // useStore.$patch((state: any) => {
+  //   state.num++;
+  // });
 }
 </script>
